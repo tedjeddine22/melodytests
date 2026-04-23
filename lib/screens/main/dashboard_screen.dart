@@ -4,7 +4,7 @@ import '../../widgets/ambient_background.dart';
 import '../../widgets/glass_card.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +110,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text('42h', style: Theme.of(context).textTheme.displayMedium),
-          const Spacer(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               const Icon(Icons.trending_up, color: AppColors.secondary, size: 16),
@@ -170,8 +169,9 @@ class DashboardScreen extends StatelessWidget {
       child: Flex(
         direction: MediaQuery.of(context).size.width > 600 ? Axis.horizontal : Axis.vertical,
         children: [
-          Expanded(
+          Flexible(
             flex: MediaQuery.of(context).size.width > 600 ? 1 : 0,
+            fit: MediaQuery.of(context).size.width > 600 ? FlexFit.tight : FlexFit.loose,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -182,8 +182,9 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.width > 600 ? 0 : 24, width: 24),
-          Expanded(
+          Flexible(
             flex: MediaQuery.of(context).size.width > 600 ? 2 : 0,
+            fit: MediaQuery.of(context).size.width > 600 ? FlexFit.tight : FlexFit.loose,
             child: Container(
               height: 16,
               decoration: BoxDecoration(

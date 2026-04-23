@@ -4,7 +4,7 @@ import '../../widgets/ambient_background.dart';
 import '../../widgets/glass_card.dart';
 
 class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({Key? key}) : super(key: key);
+  const FavoritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class FavoritesScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.15)),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -168,7 +168,7 @@ class FavoritesScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: AppColors.outline),
                 onPressed: () {},
-                hoverColor: AppColors.error.withOpacity(0.1),
+                hoverColor: AppColors.error.withValues(alpha: 0.1),
               ),
             ],
           )

@@ -4,7 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/ambient_background.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -127,8 +127,8 @@ class HomeScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant.withOpacity(0.6),
-                      border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1)),
+                      color: AppColors.surfaceVariant.withValues(alpha: 0.6),
+                      border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1)),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -138,7 +138,7 @@ class HomeScreen extends StatelessWidget {
                           height: 4,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(2),
                           ),
                           alignment: Alignment.centerLeft,
@@ -208,7 +208,7 @@ class HomeScreen extends StatelessWidget {
                                   Container(
                                     width: 100,
                                     height: 4,
-                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(2)),
+                                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(2)),
                                     alignment: Alignment.centerLeft,
                                     child: FractionallySizedBox(
                                       widthFactor: 0.75,
@@ -268,7 +268,7 @@ class HomeScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+            colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
           ),
         ),
         padding: const EdgeInsets.all(32),
@@ -331,7 +331,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 80,
                 fontWeight: FontWeight.w900,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
             ),
           ),

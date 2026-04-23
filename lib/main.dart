@@ -20,26 +20,40 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ── Firebase init ──────────────────────────────────────────────────────────
-  await Firebase.initializeApp(
-    // options: DefaultFirebaseOptions.currentPlatform, // ← uncomment after flutterfire configure
-  );
+  try {
+    await Firebase.initializeApp(
+      // options: DefaultFirebaseOptions.currentPlatform, // ← uncomment after flutterfire configure
+    );
+  } catch (e) {
+    debugPrint('⚠️ Firebase init failed (using placeholder config?): $e');
+    debugPrint('   The app will run but Firebase features (auth, Firestore) won\'t work.');
+  }
 
   // ── Background audio init (must come before runApp) ───────────────────────
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.melody.app.melody.channel.audio',
-    androidNotificationChannelName: 'Melody Audio',
-    androidNotificationOngoing: true,
-    androidShowNotificationBadge: true,
-  );
+  try {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.melody.app.melody.channel.audio',
+      androidNotificationChannelName: 'Melody Audio',
+      androidNotificationOngoing: true,
+      androidShowNotificationBadge: true,
+    );
+  } catch (e) {
+    debugPrint('⚠️ JustAudioBackground init failed: $e');
+    debugPrint('   Background audio notifications may not work.');
+  }
 
   // ── Singleton audio player init ──────────────────────────────────────────
-  await AudioPlayerService.instance.init();
+  try {
+    await AudioPlayerService.instance.init();
+  } catch (e) {
+    debugPrint('⚠️ AudioPlayerService init failed: $e');
+  }
 
   runApp(const MelodyApp());
 }
 
 class MelodyApp extends StatelessWidget {
-  const MelodyApp({Key? key}) : super(key: key);
+  const MelodyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

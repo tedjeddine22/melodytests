@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.melody.app.melody"
-        minSdk = 21  // Required for just_audio_background + biometrics
+        minSdk = flutter.minSdkVersion  // Required for just_audio_background + biometrics
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
