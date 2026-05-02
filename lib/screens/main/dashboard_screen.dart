@@ -2,9 +2,46 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ambient_background.dart';
 import '../../widgets/glass_card.dart';
+import '../../core/services/stats_service.dart';
+import '../../core/services/firebase_auth_service.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/music_provider.dart';
+import '../../navigation/main_scaffold.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _totalSeconds = 0;
+  int _goalHours = 20;
+  Map<int, double> _dailyMinutes = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final total = await StatsService.instance.getTotalListeningSeconds();
+      final goal = await StatsService.instance.getMonthlyGoalHours();
+      final daily = await StatsService.instance.getDailyMinutesThisMonth();
+      if (mounted) {
+        setState(() {
+          _totalSeconds = total;
+          _goalHours = goal;
+          _dailyMinutes = daily;
+        });
+      }
+    } catch (e) {
+      debugPrint('⚠️ Stats loading failed (offline?): $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +53,10 @@ class DashboardScreen extends StatelessWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               pinned: true,
-              leading: IconButton(icon: const Icon(Icons.menu, color: AppColors.primary), onPressed: () {}),
+              leading: IconButton(
+                icon: const Icon(Icons.menu, color: AppColors.primary), 
+                onPressed: () => MainScaffold.of(context)?.openDrawer(),
+              ),
               title: const Text('MELODY', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 2)),
               actions: [
                 const CircleAvatar(
@@ -30,21 +70,51 @@ class DashboardScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24.0),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const SizedBox(height: 16),
-                  Text('Hello, User', style: Theme.of(context).textTheme.displayMedium),
                   const SizedBox(height: 8),
-                  Text('Ready for your daily soundscape?', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.onSurfaceVariant)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primary, width: 2),
+                          image: const DecorationImage(
+                            image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuD2RUf0361taIWjap8pCT6E9xx_aPCETtzPol369lfjNcA-cgOMVGcJFkU7R7cNKPR0U28Yfy-xSZI2yWO32Sukd7lBT4q2-kXnQQ0Qo9ZKtbyFuPOhpKEkKPbSZn8iPLxfOiQEOLlLowfTG6-38AUKi0k860xkkLCNP7ULg9aigjg0KsjKB3It2166Ods4-JM4NNVUkbcJzqMNgY8occF9FiK0KTFaVASMo_98dTU_eYqmcMQAL0bK9xLZeSv4Fk5erAybwrjH5e0'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(FirebaseAuthService.instance.currentUser?.displayName ?? 'Melody User', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(FirebaseAuthService.instance.currentUser?.email ?? 'user@melody.app', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.primary)),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, color: AppColors.outline),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 48),
 
                   // Stats Grid Let's make it responsive
                   if (MediaQuery.of(context).size.width > 800)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(flex: 1, child: _buildListeningTimeCard(context)),
-                        const SizedBox(width: 24),
-                        Expanded(flex: 2, child: _buildActivityChartCard(context)),
-                      ],
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(flex: 1, child: _buildListeningTimeCard(context)),
+                          const SizedBox(width: 24),
+                          Expanded(flex: 2, child: _buildActivityChartCard(context)),
+                        ],
+                      ),
                     )
                   else
                     Column(
@@ -70,19 +140,34 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   
-                  GridView.count(
-                    crossAxisCount: MediaQuery.of(context).size.width > 800 ? 4 : 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
-                    childAspectRatio: 0.8,
-                    children: [
-                      _buildTrackCard(context, 'Neon Horizons', 'Synthetic Dreams', 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaNXaYwehMaRH37dG9A05zZXLOgbYIZZzndIqiEHBsv3ojVtgT75ajEbJ6CZf-Z92aC4FUEZYCRJ5gNm4GEkQpQYYp-ZZRppRZ7Kplrbj-O-zOXghLHcUau75Zfs61-NC0vVc95_MMGH4G5I6R5r9sCfsEBKsbN7pgTBOqDKQvfVLIbWUePWcM2OOQGtognm0UQf9_A4lOt-_xZ09552Hj7nAWgk0z8HH_6sYof5Y3NvZFAbIsj2VzzRz59VWiVSOIh43GU_wH1Bk'),
-                      _buildTrackCard(context, 'After Hours', 'Midnight Pulse', 'https://lh3.googleusercontent.com/aida-public/AB6AXuAcS1moSND8JNo1FtLo8MS54XtKKvc9o44UXSsioWBJaiIO7qAWZW5zbT-V4WQbiYViuMUwegJ1IPNguH6e097hUQQwWGJJoGOJH3sKk1EaFi5iXbRwjkhswX5zgxeoCQ0g1LBHIU5boHrvellvxgHP2BlHEgA9LISfOD3gXOgiX_Tq1ASomrythgyZzRzmzhUIlqcgweySeUH3R2PAvM_OteDhBi577xA6Ctvo4EUsBEDGhSs5Jo6sEVw_6mRP1kqjpcc33Pwswp8'),
-                      _buildTrackCard(context, 'Electric Sky', 'Velocity X', 'https://lh3.googleusercontent.com/aida-public/AB6AXuDu0iXD-IYIwGpQN2lSawaLSyI-DlXhR7f1tolR8brQ_99iDVCv069bVi5v4Ih2r7hVlWGoUqc32ZgBcLtYZOtMWlCi_GFr4k7y9noRVddq9rFKLkS9KFPG5BdR9SBWXlXj0R4i8brbBg1G6uzQgAx-uB4k9XuP2wb0bNns0jNsW6e_wdXSuFmhG3MOkyf5Hb7P-hmdk6Fs9CFjIr_v3SZvEiELea6gLWRy00BR5oBDNyQl8EQ01yLlB47jEGsDWa7bxhrzYcB9I04'),
-                      _buildTrackCard(context, 'Subliminal', 'The Low-Fi Project', 'https://lh3.googleusercontent.com/aida-public/AB6AXuAu8DW19cA_IO2b7A38wIqOPEiJqAKhZ9kAjReTWT7jk3gOrfbsHHN3jLZZYA0T1V2SKr4Gj_9YxXtbZFuLxQ4j3mSqBF9Bg2sJhRzZkg4tO1CbX7X2utxBUZA-6DXxg21xov1bCXKvk5qfP_w97hA4Dv6PbWqxxFv5KeSfV2WEPNmeRFZ9SihqX0xk2Qfrt0onehE3wsljx8_Tw1bQHQYxlP5AJp_WtWcB69pfm2wXkMPOglHOT1MsgkntO_f49fvDfsXasGtsthw'),
-                    ],
+                  Consumer<MusicProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      final tracks = provider.currentTracks.take(4).toList();
+                      if (tracks.isEmpty) {
+                        return const Text('No tracks available yet.', style: TextStyle(color: AppColors.outlineVariant));
+                      }
+                      
+                      return GridView.count(
+                        crossAxisCount: MediaQuery.of(context).size.width > 800 ? 4 : 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 24,
+                        mainAxisSpacing: 24,
+                        childAspectRatio: 0.8,
+                        children: tracks.map((track) {
+                          return _buildTrackCard(
+                            context,
+                            track.name,
+                            track.artistName,
+                            track.image.isNotEmpty ? track.image : 'https://fakeimg.pl/400x400/282828/eae0d0/'
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 120), // Bottom padding for nav bar
@@ -109,13 +194,13 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text('42h', style: Theme.of(context).textTheme.displayMedium),
+          Text(StatsService.formatSeconds(_totalSeconds), style: Theme.of(context).textTheme.displayMedium),
           const SizedBox(height: 16),
           Row(
             children: [
               const Icon(Icons.trending_up, color: AppColors.secondary, size: 16),
               const SizedBox(width: 8),
-              Text('+12% from last week', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.secondary)),
+              Text('Keep it up!', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.secondary)),
             ],
           ),
         ],
@@ -124,8 +209,15 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildActivityChartCard(BuildContext context) {
-    // Dummy heights for histogram
-    final heights = [0.4, 0.6, 0.45, 0.8, 0.95, 0.7, 0.55, 0.4, 0.65, 0.85, 1.0, 0.6];
+    // Convert daily stats to normalized heights for the histogram (max 60 mins)
+    final last30Days = List.generate(30, (index) {
+      final day = DateTime.now().subtract(Duration(days: 29 - index));
+      return _dailyMinutes[day.day] ?? 0.0;
+    });
+    
+    final maxMins = last30Days.reduce((a, b) => a > b ? a : b);
+    final normalizationFactor = maxMins > 0 ? maxMins : 60.0;
+    final heights = last30Days.map((m) => (m / normalizationFactor).clamp(0.0, 1.0)).toList();
     
     return GlassCard(
       padding: const EdgeInsets.all(32),
@@ -148,8 +240,8 @@ class DashboardScreen extends StatelessWidget {
               children: List.generate(heights.length, (index) {
                 final isPeak = heights[index] > 0.9;
                 return Container(
-                  width: 12, // simple fixed width for dummy chart
-                  height: 120 * heights[index],
+                  width: 4, // thin bars for 30 items
+                  height: (120 * heights[index].toDouble()).clamp(2.0, 120.0),
                   decoration: BoxDecoration(
                     color: isPeak ? AppColors.primary : AppColors.surfaceContainerHighest,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
@@ -164,6 +256,9 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildGoalCard(BuildContext context) {
+    final progress = _totalSeconds / (_goalHours * 3600);
+    final percentage = (progress * 100).clamp(0, 100).toInt();
+
     return GlassCard(
       padding: const EdgeInsets.all(32),
       child: Flex(
@@ -175,9 +270,33 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Monthly Listening Goal', style: Theme.of(context).textTheme.headlineSmall),
+                Row(
+                  children: [
+                    Text('Monthly Goal ', style: Theme.of(context).textTheme.headlineSmall),
+                    DropdownButton<int>(
+                      value: _goalHours,
+                      dropdownColor: AppColors.surfaceContainerHigh,
+                      underline: const SizedBox(),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+                      items: [10, 20, 30, 50].map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('${value}h', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppColors.primary)),
+                        );
+                      }).toList(),
+                      onChanged: (int? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _goalHours = newValue;
+                          });
+                          StatsService.instance.setMonthlyGoalHours(newValue);
+                        }
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
-                Text("You're crushing your 60h target!", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant)),
+                Text(percentage >= 100 ? "Goal Met!" : "Keep listening!", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant)),
               ],
             ),
           ),
@@ -192,17 +311,20 @@ class DashboardScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.centerLeft,
-              child: Container(
-                width: 250, // Static width since it's a dummy
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
-                  borderRadius: BorderRadius.circular(8),
+              child: FractionallySizedBox(
+                widthFactor: progress.clamp(0.0, 1.0),
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.width > 600 ? 0 : 24, width: 24),
-          Text('70%', style: Theme.of(context).textTheme.headlineMedium),
+          Text('$percentage%', style: Theme.of(context).textTheme.headlineMedium),
         ],
       ),
     );
