@@ -177,7 +177,7 @@ lib/
 
 1. **Cloner le dépôt**
    ```bash
-   git clone <url-du-repo>
+   git clone https://github.com/tedjeddine22/melodytests.git
    cd melodytests
    ```
 
